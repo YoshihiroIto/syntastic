@@ -1,5 +1,5 @@
 "============================================================================
-"File:        cobc.vim
+"File:        rpmlint.vim
 "Description: Syntax checking plugin for syntastic.vim
 "Maintainer:  LCD 47 <lcd047 at gmail dot com>
 "License:     This program is free software. It comes without any warranty,
@@ -10,36 +10,32 @@
 "
 "============================================================================
 
-
-if exists('g:loaded_syntastic_cobol_cobc_checker')
+if exists('g:loaded_syntastic_spec_rpmlint_checker')
     finish
 endif
-let g:loaded_syntastic_cobol_cobc_checker = 1
-
-if !exists('g:syntastic_cobol_compiler_options')
-    let g:syntastic_cobol_compiler_options = ''
-endif
+let g:loaded_syntastic_spec_rpmlint_checker = 1
 
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! SyntaxCheckers_cobol_cobc_IsAvailable() dict
-    if !exists('g:syntastic_cobol_compiler')
-        let g:syntastic_cobol_compiler = self.getExec()
-    endif
-    call self.log('g:syntastic_cobol_compiler =', g:syntastic_cobol_compiler)
-    return executable(expand(g:syntastic_cobol_compiler))
-endfunction
+function! SyntaxCheckers_spec_rpmlint_GetLocList() dict
+    let makeprg = self.makeprgBuild({})
 
-function! SyntaxCheckers_cobol_cobc_GetLocList() dict
-    return syntastic#c#GetLocList('cobol', 'cobc', {
-        \ 'errorformat': '%f:%l: %trror: %m',
-        \ 'main_flags': '-fsyntax-only' })
+    let errorformat =
+        \ '%E%f:%l: E: %m,' .
+        \ '%E%f: E: %m,' .
+        \ '%W%f:%l: W: %m,' .
+        \ '%W%f: W: %m,' .
+        \ '%-G%.%#'
+
+    return SyntasticMake({
+        \ 'makeprg': makeprg,
+        \ 'errorformat': errorformat })
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({
-    \ 'filetype': 'cobol',
-    \ 'name': 'cobc' })
+    \ 'filetype': 'spec',
+    \ 'name': 'rpmlint'})
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

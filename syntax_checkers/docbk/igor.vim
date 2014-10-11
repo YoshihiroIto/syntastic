@@ -1,5 +1,5 @@
 "============================================================================
-"File:        frosted.vim
+"File:        igor.vim
 "Description: Syntax checking plugin for syntastic.vim
 "Maintainer:  LCD 47 <lcd047 at gmail dot com>
 "License:     This program is free software. It comes without any warranty,
@@ -10,52 +10,44 @@
 "
 "============================================================================
 
-if exists('g:loaded_syntastic_python_frosted_checker')
+if exists('g:loaded_syntastic_docbk_igor_checker')
     finish
 endif
-let g:loaded_syntastic_python_frosted_checker = 1
+let g:loaded_syntastic_docbk_igor_checker = 1
 
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! SyntaxCheckers_python_frosted_GetLocList() dict
-    let makeprg = self.makeprgBuild({ 'args_after': '-vb' })
+function! SyntaxCheckers_docbk_igor_GetLocList() dict
+    let makeprg = self.makeprgBuild({})
 
-    let errorformat =
-        \ '%f:%l:%c:%m,' .
-        \ '%E%f:%l: %m,' .
-        \ '%-Z%p^,' .
-        \ '%-G%.%#'
-
-    let env = syntastic#util#isRunningWindows() ? {} : { 'TERM': 'dumb' }
+    let errorformat = '%f:%l:%m'
 
     let loclist = SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
-        \ 'env': env,
-        \ 'returns': [0, 1] })
+        \ 'defaults': { 'type': 'W' },
+        \ 'subtype': 'Style',
+        \ 'returns': [0] })
 
+    let buf = bufnr('')
     for e in loclist
-        let e["col"] += 1
+        " XXX: igor strips directories from filenames
+        let e['bufnr'] = buf
 
-        let parts = matchlist(e.text, '\v^([EW]\d+):([^:]*):(.+)')
-        if len(parts) >= 4
-            let e["type"] = parts[1][0]
-            let e["text"] = parts[3] . ' [' . parts[1] . ']'
-            let e["hl"] = '\V\<' . escape(parts[2], '\') . '\>'
-        elseif e["text"] =~? '\v^I\d+:'
-            let e["valid"] = 0
-        else
-            let e["vcol"] = 0
-        endif
+        let e['hl'] = '\V' . escape( substitute(e['text'], '\m[^:]*:', '', ''), '\' )
+        let e['hl'] = substitute(e['hl'], '\V[', '\\zs', 'g')
+        let e['hl'] = substitute(e['hl'], '\V]', '\\ze', 'g')
+
+        " let e['text'] = substitute(e['text'], '\m:.*$', '', '')
     endfor
 
     return loclist
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({
-    \ 'filetype': 'python',
-    \ 'name': 'frosted' })
+    \ 'filetype': 'docbk',
+    \ 'name': 'igor'})
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

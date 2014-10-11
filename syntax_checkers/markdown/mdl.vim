@@ -1,7 +1,7 @@
 "============================================================================
-"File:        atdtool.vim
+"File:        mdl.vim
 "Description: Syntax checking plugin for syntastic.vim
-"Maintainer:  LCD 47 <lcd047 at gmail dot com>
+"Maintainer:  Charles Beynon <etothepiipower at gmail dot com>
 "License:     This program is free software. It comes without any warranty,
 "             to the extent permitted by applicable law. You can redistribute
 "             it and/or modify it under the terms of the Do What The Fuck You
@@ -10,39 +10,25 @@
 "
 "============================================================================
 
-if exists("g:loaded_syntastic_text_atdtool_checker")
+if exists("g:loaded_syntastic_markdown_mdl_checker")
     finish
 endif
-let g:loaded_syntastic_text_atdtool_checker = 1
+let g:loaded_syntastic_markdown_mdl_checker = 1
 
 let s:save_cpo = &cpo
 set cpo&vim
 
-function! SyntaxCheckers_text_atdtool_GetHighlightRegex(item)
-    let term = matchstr(a:item['text'], '\m "\zs[^"]\+\ze"\($\| | suggestions:\)')
-    if term != ''
-        let col = get(a:item, 'col', 0)
-        let term = (col != 0 ? '\%' . col . 'c' : '') . '\V' . escape(term, '\')
-    endif
-    return term
-endfunction
-
-function! SyntaxCheckers_text_atdtool_GetLocList() dict
-    let makeprg = self.makeprgBuild({ 'tail': '2> ' . syntastic#util#DevNull() })
+function! SyntaxCheckers_markdown_mdl_GetLocList() dict
+    let makeprg = self.makeprgBuild({ 'args': '--warnings' })
 
     let errorformat =
-        \ '%W%f:%l:%c: %m,'.
-        \ '%+C  suggestions:%.%#'
+        \ '%E%f:%l: %m,'.
+        \ '%W%f: Kramdown Warning: %m found on line %l'
 
     let loclist = SyntasticMake({
         \ 'makeprg': makeprg,
         \ 'errorformat': errorformat,
-        \ 'returns': [0],
         \ 'subtype': 'Style' })
-
-    for e in loclist
-        let e['text'] = substitute(e['text'], '\m\n\s\+', ' | ', 'g')
-    endfor
 
     call self.setWantSort(1)
 
@@ -50,8 +36,8 @@ function! SyntaxCheckers_text_atdtool_GetLocList() dict
 endfunction
 
 call g:SyntasticRegistry.CreateAndRegisterChecker({
-    \ 'filetype': 'text',
-    \ 'name': 'atdtool'})
+    \ 'filetype': 'markdown',
+    \ 'name': 'mdl'})
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
